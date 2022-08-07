@@ -1,15 +1,18 @@
 /* eslint-disable no-alert */
-
 /**************
  *   SLICE 1
  **************/
 
 function updateCoffeeView(coffeeQty) {
-  // your code here
+   let cupCount = document.getElementById('coffee_counter')
+   cupCount.innerText = coffeeQty.toLocaleString()
 }
 
 function clickCoffee(data) {
   // your code here
+  data.coffee += 1
+  updateCoffeeView(data.coffee)
+  renderProducers(data);
 }
 
 /**************
@@ -17,15 +20,21 @@ function clickCoffee(data) {
  **************/
 
 function unlockProducers(producers, coffeeCount) {
-  // your code here
+  producers.forEach(producer => {
+    if (coffeeCount >= producer.price / 2) {
+      producer.unlocked = true;
+    }
+  });
 }
 
 function getUnlockedProducers(data) {
-  // your code here
+   return data.producers.filter(producer => producer.unlocked)
 }
 
 function makeDisplayNameFromId(id) {
-  // your code here
+  let cleanedCase = id.split('_');
+  let upperCased = cleanedCase.map(word => word.charAt(0).toUpperCase() + word.slice(1))
+  return upperCased.join(' ')
 }
 
 // You shouldn't need to edit this function-- its tests should pass once you've written makeDisplayNameFromId
@@ -50,11 +59,18 @@ function makeProducerDiv(producer) {
 }
 
 function deleteAllChildNodes(parent) {
-  // your code here
+  while (parent.firstChild) {
+    parent.removeChild(parent.firstChild);
+  }
 }
 
 function renderProducers(data) {
-  // your code here
+  unlockProducers(data.producers, data.coffee);
+  let producerContainer = document.getElementById('producer_container');
+  deleteAllChildNodes(producerContainer);
+  getUnlockedProducers(data).forEach(producer => {
+  producerContainer.appendChild(makeProducerDiv(producer));
+  });
 }
 
 /**************
@@ -62,31 +78,53 @@ function renderProducers(data) {
  **************/
 
 function getProducerById(data, producerId) {
-  // your code here
-}
+  return data.producers.find(producer => producerId === producer.id);
+  }
 
 function canAffordProducer(data, producerId) {
-  // your code here
+  return getProducerById(data, producerId).price <= data.coffee;
 }
 
 function updateCPSView(cps) {
-  // your code here
+  let cupsPerSec = document.getElementById('cps');
+  cupsPerSec.innerText = cps.toLocaleString();
 }
 
 function updatePrice(oldPrice) {
-  // your code here
+  return Math.floor(oldPrice * 1.25)
 }
 
 function attemptToBuyProducer(data, producerId) {
-  // your code here
+  if (canAffordProducer(data, producerId)) {
+    let producer = getProducerById(data, producerId);
+    data.coffee -= producer.price;
+    producer.qty += 1;
+    producer.price = updatePrice(producer.price);
+    data.totalCPS += producer.cps;
+    return true;
+  } else {
+    return false;
+  }
 }
 
 function buyButtonClick(event, data) {
-  // your code here
+  if (event.target.tagName === 'BUTTON') {
+    let producerId = event.target.id.slice(4);
+    let result = attemptToBuyProducer(data, producerId);
+    if (!result) {
+      window.alert('Not enough coffee!');
+    } else {
+      renderProducers(data);
+      updateCoffeeView(data.coffee);
+      updateCPSView(data.totalCPS);
+    }
+  }
 }
 
 function tick(data) {
-  // your code here
+  data.coffee += data.totalCPS;
+  updateCoffeeView(data.coffee);
+  renderProducers(data);
 }
 
 /*************************
